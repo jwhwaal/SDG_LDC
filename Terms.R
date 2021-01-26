@@ -41,7 +41,7 @@ sr.tdm <- TermDocumentMatrix(corp,
                                           stemming = TRUE,
                                           removeNumbers = TRUE,
                                           bounds = list(global = c(1, Inf)))) 
-
+write.csv(sr.tdm, "tdm.csv")
 #inspecteren
 inspect(sr.tdm) 
 
@@ -64,8 +64,9 @@ inspect(sr.dtm)
 td_sr <- tidy(sr.dtm)
 str(td_sr)
 td_corp <- tidy(corp) 
+write.csv(td_sr, "td.csv")
 
-
+read.csv("td.csv")
 td_sr %>% ggplot(aes(term, count, fill = document)) +
   geom_bar(stat = "identity") + coord_flip() +
   theme_light()
