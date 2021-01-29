@@ -77,3 +77,54 @@ str(words)
 
 td_bi <- td_corp %>% unnest_tokens(bigram, text, token = "ngrams", n = 3, stopwords = TRUE)
 td_bi %>% select(id, bigram) 
+
+
+#IMPORT FORBES 2000 (2017)
+library(readxl)
+SDG_Forbes17 <- read_excel("SDG_Forbes17.xlsx")
+fb <- SDG_Forbes17
+check <- fb %>% select(GICS4, sectorname) %>% group_by(GICS4)
+
+#convert numerical values to factors
+fb$GICS4 <- as.factor(fb$GICS4)
+fb$gri4 <- as.factor(fb$gri4)
+fb$aa1000 <- as.factor(fb$aa1000)
+fb$iirc <- as.factor(fb$iirc)
+fb$gl <- as.factor(fb$gl)
+fb$ass <- as.factor(fb$ass)
+fb$ir <- as.factor(fb$ir)
+fb$gc <- as.factor(fb$gc)
+fb$newsam <- as.factor(fb$newsam)
+
+#make new variables
+fb1 <- fb %>% mutate(GICS2 = as.factor(substr(fb$GICS4,1,4)), 
+                     GICS1 = as.factor(substr(fb$GICS4,1,2)),
+                     size = log10(marketvalue), 
+                     s = log10(sdgf),
+                     p = log10(pages),
+                     sdg = ifelse(sdgf>0,1,0))
+
+#make various plots
+fb1 %>% ggplot(aes(sdgf, GICS2)) + geom_boxplot()
+fb1 %>% ggplot(aes(sdgf, GICS2)) + geom_bar(stat = "identity")
+fb1 %>% filter(pages>0) %>% ggplot(aes(pages, GICS2)) + geom_boxplot()
+fb1 %>% filter(pages>0 & iirc == 0) %>% ggplot(aes(pages)) + geom_histogram(binwidth = 25)
+
+fb1 %>% ggplot(aes(size, GICS2)) + geom_boxplot()
+fb1 %>% ggplot(aes(size, GICS4)) + geom_boxplot()
+fb1 %>% filter(sdgf>0) %>% ggplot(aes(s, countrygrpname)) + geom_boxplot()
+fb1 %>% filter(sdgf>0) %>% ggplot(aes(s, GICS2)) + geom_boxplot()
+fb1 %>% filter(sdgf>0) %>% ggplot(aes(sdgf, newsam)) + geom_boxplot() 
+fb1 %>% filter(sdgf>0) %>% ggplot(aes(s, GICS1)) + 
+  geom_boxplot() + 
+  facet_grid(gc ~ countrygrpname)
+fb1 %>% filter(sdgf>0) %>% ggplot(aes(size, s, color = GICS1 )) +
+                                    geom_point() +
+                                    facet_wrap( ~ countrygrpname)
+fb1 %>% filter(sdgf>0) %>% ggplot(aes(p, s, color = GICS1 )) +
+  geom_point() 
+fb1 %>% filter(sdgf>0) %>% ggplot(aes(uai, s, color = countrygrpname )) +
+  geom_point() 
+
+#check problems with GICS-classification (NAs)
+fb1 %>% select(pkcompany, GICS4) %>% filter(is.na(GICS4))
